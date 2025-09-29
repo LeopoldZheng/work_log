@@ -14,8 +14,9 @@ https://www.processon.com/v/68d62f74a225f06bfca6baf9
 
 
 
-1. app打包
-============ app: 许可的功能定义在lingyan.meta.yml ===============
+============ app: 许可的功能定义 ===============
+1. app打包：
+# lingyan.meta.yml
 license_function:
   - license_id: xxx
     # 与agent无关的功能，可以在ai-gateway统一校验
@@ -92,12 +93,12 @@ app_license:
     - redis 删除key: app_license:{租户id}*
 
 6. ai-gateway服务重启场景：
-  获取业务锁
-  把 t_app_license_tenant 数据捞到redis里，重建redis的4类key
+  - 获取业务锁
+  - 把 t_app_license_tenant 数据捞到redis里，重建redis的4类key
 
 7. 每日定时任务：删除过期数据：
-  获取业务锁
-  查询 t_app_license_tenant 的过期时间和下单时间，删除mysql和redis的过期数据
+  - 获取业务锁
+  - 查询 t_app_license_tenant 的过期时间和下单时间，删除mysql和redis的过期数据
 
 8. 许可展示（查询有功能权限的应用和智能体）
   - 前端请求带上{租户id}（为0则表示本地灵岩用户）
