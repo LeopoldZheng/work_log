@@ -38,9 +38,11 @@ app_license:
       value: 2100-12-31 （NULL就是永久）
       description: yyy
   # 其他license，用于校验时用
-  common_license:
-    - 进阶包license_id1
-    - 进阶包license_id2
+  advanced_license:
+    - license_id: 进阶包license_id1
+      description:
+    - license_id: 进阶包license_id2
+      description:
 
 2. ai-gateway部署与升级（服务首次启动加载预置许可并入库）：
   - 获取业务锁（gmd提供的分布式锁）
