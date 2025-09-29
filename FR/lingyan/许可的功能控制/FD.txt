@@ -1,18 +1,6 @@
 
-设计图：
+架构图：
 https://www.processon.com/v/68d62f74a225f06bfca6baf9
-
-
-功能权限控制：
-  1. lingyan.meta.yml的定义，用于定义不同功能包所具有的功能。
-  2. hillos-core 如hillos-api-gateway权限控制数据。
-  3. 不同功能包的license定义（需要找建武沟通）
-  4. 功能控制
-
-
-
-
-
 
 ============ app: 许可的功能定义 ===============
 1. app打包：
@@ -100,12 +88,14 @@ app_license:
   - 获取业务锁
   - 查询 t_app_license_tenant 的过期时间和下单时间，删除mysql和redis的过期数据
 
-8. 许可展示（查询有功能权限的应用和智能体）
-  - 前端请求带上{租户id}（为0则表示本地灵岩用户）
-  - 根据租户id={0, 前端请求带上的id} 查表 t_app_license_tenant 获取 license_id 和过期时间
-  - 根据 license_id 查表 t_app_license_function，获取可用的app及agent
-
-
+8. 查询有功能权限的应用和智能体（许可展示、plan图获取可用的agent列表）
+  - 请求带上{租户id}（为0则表示本地灵岩用户）
+  - 调用ai-gateway接口getAvaliableAppAgent
+    ai-gateway提供一个查询可用app及agent的接口getAvaliableAppAgent，参数是租户id
+    - 先查安装了哪些license
+      根据租户id={0, 租户id参数} 查表 t_app_license_tenant 获取 license_id 和过期时间
+    - 根据license查app的metadata
+      根据 license_id 查表 t_app_license_function，获取可用的app及agent
 
 
 
