@@ -42,15 +42,24 @@ app_license:
     - 进阶包license_id1
     - 进阶包license_id2
 
-2. app安装场景：
+2. ai-gateway部署与升级（服务首次启动加载预置许可并入库）：
+  - 获取业务锁（gmd提供的分布式锁）
+  - 加载application.yml配置
+  - 根据 租户id=0, license_id=预置license_id 查表 t_app_license_tenant
+    - 查不到，则入库 t_app_license_tenant VALUES(租户id=0, 预置license_id, expired_time, expired_time_type, order_time)
+    - 查的到，只更新字段 expired_time, expired_time_type
+
+3. app安装场景：
+- manage-center推送appid, metadata
+- 获取业务锁
 - 许可功能定义入库 t_app_license_function VALUES(appid, metadata)
-- 预置基础包的功能：
-  - 入库 t_app_license_tenant VALUES(租户id=0, license_id, expired_time, expired_time_type, order_time)
+- 加载预置许可的功能：
+  - 查表 t_app_license_tenant 获取 expired_time
   - 入redis:
     - app_license:common_type:{预置license_id}:{appid}:{url}        值：  {expired_time} + {configuration}
     - app_license:agent_type: {预置license_id}:{appid}:{agent_id}   值：  {expired_time} + {configuration}
 
-3. 云端用户购买进阶包场景：
+4. 云端用户购买进阶包场景：
 - 云景推送数据：租户id, license_id, expired_time, expired_time_type, order_time
 - 获取业务锁
 - 入库 t_app_license_tenant VALUES(租户id, license_id, expired_time, expired_time_type, order_time)
@@ -59,12 +68,15 @@ app_license:
   - app_license:{租户id}:agent_type: {进阶license_id}:{appid}:{agent_id}    值：  {expired_time} + {configuration}
 
 ============ ai-gateway: 许可的功能控制 ===============
-4. 用户请求场景：
+5. 用户请求场景：
+    加载application.yml的app_license配置
     ai-gateway 做 common_check:
+      - 要求请求带上租户id、appid
       - 先找预置license的redis key，若找到，校验过期时间和configuration
       - 再找进阶license的redis key，若找到，校验过期时间和configuration
       - 找不到，拒绝请求
     app 触发 agent_check：
+      - 要求请求带上租户id、agent_id
       - 先找预置license的redis key，若找到，校验过期时间和configuration
       - 再找进阶license的redis key，若找到，校验过期时间和configuration
       - 找不到，拒绝请求
@@ -72,7 +84,7 @@ app_license:
 
 =========== 其他业务场景 ==================================
 
-5. 租户合并场景：
+6. 租户合并场景：
   - 获取业务锁
   - 主租户：
     - 查询副租户剩余时间，把剩余时间累加到主租户上，更新mysql和redis
@@ -80,15 +92,15 @@ app_license:
     - t_app_license_tenant 根据租户id删除数据
     - redis 删除key: app_license:{租户id}*
 
-6. ai-gateway服务重启场景：
+7. ai-gateway服务重启场景：
   - 获取业务锁
-  - 把 t_app_license_tenant 数据捞到redis里，重建redis的4类key
+  - 重建redis的4类key的数据：把 t_app_license_tenant、t_app_license_function 数据捞到redis里
 
-7. 每日定时任务：删除过期数据：
+8. 每日定时任务：删除过期数据：
   - 获取业务锁
   - 查询 t_app_license_tenant 的过期时间和下单时间，删除mysql和redis的过期数据
 
-8. 查询有功能权限的应用和智能体（许可展示、plan图获取可用的agent列表）
+9. 查询有功能权限的应用和智能体（许可展示、plan图获取可用的agent列表）
   - 请求带上{租户id}（为0则表示本地灵岩用户）
   - 调用ai-gateway接口getAvaliableAppAgent
     ai-gateway提供一个查询可用app及agent的接口getAvaliableAppAgent，参数是租户id
