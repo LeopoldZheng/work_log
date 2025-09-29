@@ -14,8 +14,8 @@ https://www.processon.com/v/68d62f74a225f06bfca6baf9
 
 
 
-app打包
-============ app: 许可的功能定义在metedata ===============
+1. app打包
+============ app: 许可的功能定义在lingyan.meta.yml ===============
 license_function:
   - license_id: xxx
     # 与agent无关的功能，可以在ai-gateway统一校验
@@ -35,8 +35,8 @@ license_function:
 		    configuration:
     description: 进阶包license
 
-============ ai-gateway: license配置的存储 ===============
-application.yml
+============ ai-gateway: 许可的配置存储与更新 ===============
+# application.yml
 app_license:
   # 预置的license
   preload_license:
@@ -53,23 +53,24 @@ app_license:
     - 进阶包license_id1
     - 进阶包license_id2
 
-app安装场景：
-- 许可功能定义入库 t_app_license_function (appid、metadata)
+2. app安装场景：
+- 许可功能定义入库 t_app_license_function VALUES(appid, metadata)
 - 预置基础包的功能：
-  - 入库 t_app_license_tenant (license_id、expired_time、expired_time_type、order_time)
+  - 入库 t_app_license_tenant VALUES(租户id=0, license_id, expired_time, expired_time_type, order_time)
   - 入redis:
     - app_license:common_type:{预置license_id}:{appid}:{url}        值：  {expired_time} + {configuration}
     - app_license:agent_type: {预置license_id}:{appid}:{agent_id}   值：  {expired_time} + {configuration}
 
-云端用户购买进阶包场景：
-- 云景推送：租户id、license_id、expired_time、expired_time_type、order_time
-- 入库 t_app_license_tenant (租户id、license_id、expired_time、expired_time_type、order_time)
-- 再入redis:
+3. 云端用户购买进阶包场景：
+- 云景推送数据：租户id, license_id, expired_time, expired_time_type, order_time
+- 获取业务锁
+- 入库 t_app_license_tenant VALUES(租户id, license_id, expired_time, expired_time_type, order_time)
+- 入redis:
   - app_license:{租户id}:common_type:{进阶license_id}:{appid}:{url}         值：  {expired_time} + {configuration}
   - app_license:{租户id}:agent_type: {进阶license_id}:{appid}:{agent_id}    值：  {expired_time} + {configuration}
 
-============ ai-gateway: license的功能控制 ===============
-用户请求场景：
+============ ai-gateway: 许可的功能控制 ===============
+4. 用户请求场景：
     ai-gateway 做 common_check:
       - 先找预置license的redis key，若找到，校验过期时间和configuration
       - 再找进阶license的redis key，若找到，校验过期时间和configuration
@@ -81,18 +82,28 @@ app安装场景：
 
 
 =========== 其他业务场景 ==================================
-许可变更：
-	租户删除
-	许可变更（租户合并、升级进阶版）
-	许可到期（进阶版到期）
 
+5. 租户合并场景：
+  - 获取业务锁
+  - 主租户：
+    - 查询副租户剩余时间，把剩余时间累加到主租户上，更新mysql和redis
+  - 删除副租户：
+    - t_app_license_tenant 根据租户id删除数据
+    - redis 删除key: app_license:{租户id}*
 
-许可展示
-    展示有功能权限的应用和智能体
+6. ai-gateway服务重启场景：
+  获取业务锁
+  把 t_app_license_tenant 数据捞到redis里，重建redis的4类key
 
+7. 每日定时任务：删除过期数据：
+  获取业务锁
+  查询 t_app_license_tenant 的过期时间和下单时间，删除mysql和redis的过期数据
 
-ai-gateway服务重启场景：
-  把 t_app_license_tenant 数据捞到redis里
+8. 许可展示（查询有功能权限的应用和智能体）
+  - 前端请求带上{租户id}（为0则表示本地灵岩用户）
+  - 根据租户id={0, 前端请求带上的id} 查表 t_app_license_tenant 获取 license_id 和过期时间
+  - 根据 license_id 查表 t_app_license_function，获取可用的app及agent
+
 
 
 
