@@ -58,8 +58,8 @@ app_license:
 - 加载预置许可的功能：
   - 查表 t_app_license_tenant 获取 expired_time
   - 入redis:
-    - app_license:common_type:{预置license_id}:{appid}:{url}        值：  {expired_time} + {configuration}
-    - app_license:agent_type: {预置license_id}:{appid}:{agent_id}   值：  {expired_time} + {configuration}
+    - app_license:{租户id=0}:common_type:{预置license_id}:{appid}:{url}        值：  {expired_time} + {configuration}
+    - app_license:{租户id=0}:agent_type: {预置license_id}:{appid}:{agent_id}   值：  {expired_time} + {configuration}
 
 4. 云端用户购买进阶包场景：
 - 云景推送数据：租户id, license_id, expired_time, expired_time_type, order_time
@@ -96,7 +96,7 @@ app_license:
 
 7. ai-gateway服务重启场景：
   - 获取业务锁
-  - 重建redis的4类key的数据：把 t_app_license_tenant、t_app_license_function 数据捞到redis里
+  - 重建redis的2类key的数据：把 t_app_license_tenant、t_app_license_function 数据捞到redis里
 
 8. 每日定时任务：删除过期数据：
   - 获取业务锁
