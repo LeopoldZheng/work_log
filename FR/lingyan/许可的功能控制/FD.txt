@@ -25,6 +25,15 @@ license_function:
     description: 进阶包license
 
 ============ ai-gateway: 许可的配置存储与更新 ===============
+
+| 2类许可 	| 预置(基础包)                              	| 非预置(进阶包、旗舰包)                                           	|
+|---------	|-------------------------------------------	|------------------------------------------------------------------	|
+| 云端    	| ai-gateway预先定义好的许可，已入db和redis 	| 用户安装进阶包后，云景推送给ai-gateway，入db和redis              	|
+| 本地    	| ai-gateway预先定义好的许可，已入db和redis 	| 用户安装进阶平台许可后，hillos-core推送给ai-gateway，入db和redis 	|
+
+本地通过平台许可来控制能否访问app，通过ai-gateway来控制能访问哪些app及agent
+云端通过ai-gateway来控制租户能访问哪些app及agent
+
 # application.yml
 app_license:
   # 预置的license
@@ -86,16 +95,18 @@ app_license:
 
 ============ ai-gateway: 许可的功能控制 ===============
 6. 用户请求场景：
-    加载application.yml的app_license配置
+    加载application.yml的app_license配置，获取license_id
     ai-gateway 做 common_check:
       - 要求请求带上租户id、appid
-      - 先找预置license的redis key，若找到，校验过期时间和configuration
-      - 再找进阶license的redis key，若找到，校验过期时间和configuration
+      - 先找预置license的redis key    app_license:{租户id=0}:common_type:{预置license_id}:{appid}:{url}
+      - 再找进阶license的redis key    app_license:{租户id}:common_type:{进阶license_id}:{appid}:{url}
+      - 若找到，校验过期时间和configuration
       - 找不到，拒绝请求
     app 触发 agent_check：
-      - 要求请求带上租户id、agent_id
-      - 先找预置license的redis key，若找到，校验过期时间和configuration
-      - 再找进阶license的redis key，若找到，校验过期时间和configuration
+      - 要求请求带上租户id、appid、agent_id
+      - 先找预置license的redis key    app_license:{租户id=0}:agent_type: {预置license_id}:{appid}:{agent_id}
+      - 再找进阶license的redis key    app_license:{租户id}:agent_type:{进阶license_id}:{appid}:{agent_id}
+      - 若找到，校验过期时间和configuration
       - 找不到，拒绝请求
 
 
