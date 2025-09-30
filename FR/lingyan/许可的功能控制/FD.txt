@@ -29,14 +29,14 @@ license_function:
 app_license:
   # 预置的license
   preload_license:
-    - license_id: 试用版
+    - license_id: 试用版、与试用平台许可对应
       type: DAYS
       value: 30
       description:
-    - license_id: 基础版
+    - license_id: 基础版、与正式平台许可对应
       type: DATE
       value: 2100-12-31 （NULL就是永久）
-      description: yyy
+      description:
   # 其他license，用于校验时用
   advanced_license:
     - license_id: 进阶包license_id1
@@ -44,12 +44,13 @@ app_license:
     - license_id: 进阶包license_id2
       description:
 
-2. ai-gateway部署与升级（服务首次启动加载预置许可并入库）：
+2. ai-gateway启动时加载预置许可并入库
   - 获取业务锁（gmd提供的分布式锁）
   - 加载application.yml配置
-  - 根据 租户id=0, license_id=预置license_id 查表 t_app_license_tenant
+  - 查表 t_app_license_tenant where (租户id=0, license_id=预置license_id)
     - 查不到，则入库 t_app_license_tenant VALUES(租户id=0, 预置license_id, expired_time, expired_time_type, order_time)
     - 查的到，只更新字段 expired_time, expired_time_type
+  - 重建redis的2类key的数据：把 t_app_license_tenant、t_app_license_function 数据捞到redis里
 
 3. app安装场景：
 - manage-center推送appid, metadata
@@ -57,6 +58,7 @@ app_license:
 - 许可功能定义入库 t_app_license_function VALUES(appid, metadata)
 - 加载预置许可的功能：
   - 查表 t_app_license_tenant 获取 expired_time
+  - 查 metadata 获取 url, agent_id, configuration
   - 入redis:
     - app_license:{租户id=0}:common_type:{预置license_id}:{appid}:{url}        值：  {expired_time} + {configuration}
     - app_license:{租户id=0}:agent_type: {预置license_id}:{appid}:{agent_id}   值：  {expired_time} + {configuration}
@@ -65,12 +67,25 @@ app_license:
 - 云景推送数据：租户id, license_id, expired_time, expired_time_type, order_time
 - 获取业务锁
 - 入库 t_app_license_tenant VALUES(租户id, license_id, expired_time, expired_time_type, order_time)
+- 根据 license_id 查 metadata 获取 appid, url, agent_id, configuration
 - 入redis:
   - app_license:{租户id}:common_type:{进阶license_id}:{appid}:{url}         值：  {expired_time} + {configuration}
   - app_license:{租户id}:agent_type: {进阶license_id}:{appid}:{agent_id}    值：  {expired_time} + {configuration}
 
+5. 本地用户安装平台许可场景：
+- 基础包平台许可：已被预置，无需额外处理逻辑
+- 进阶包平台许可：
+  - hillos-core推送 (license_id, expired_time, expired_time_type, order_time) 到kafka
+  - ai-gateway 订阅kafka
+  - 获取业务锁
+  - 入库 t_app_license_tenant VALUES(租户id=0, license_id, expired_time, expired_time_type, order_time)
+  - 根据 license_id 查 metadata 获取 appid, url, agent_id, configuration
+  - 入redis
+    - app_license:{租户id=0}:common_type:{进阶license_id}:{appid}:{url}         值：  {expired_time} + {configuration}
+    - app_license:{租户id=0}:agent_type: {进阶license_id}:{appid}:{agent_id}    值：  {expired_time} + {configuration}
+
 ============ ai-gateway: 许可的功能控制 ===============
-5. 用户请求场景：
+6. 用户请求场景：
     加载application.yml的app_license配置
     ai-gateway 做 common_check:
       - 要求请求带上租户id、appid
@@ -86,17 +101,13 @@ app_license:
 
 =========== 其他业务场景 ==================================
 
-6. 租户合并场景：
+7. 租户合并场景：
   - 获取业务锁
   - 主租户：
     - 查询副租户剩余时间，把剩余时间累加到主租户上，更新mysql和redis
   - 删除副租户：
     - t_app_license_tenant 根据租户id删除数据
     - redis 删除key: app_license:{租户id}*
-
-7. ai-gateway服务重启场景：
-  - 获取业务锁
-  - 重建redis的2类key的数据：把 t_app_license_tenant、t_app_license_function 数据捞到redis里
 
 8. 每日定时任务：删除过期数据：
   - 获取业务锁
