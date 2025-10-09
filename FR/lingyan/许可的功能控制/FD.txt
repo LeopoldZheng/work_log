@@ -15,60 +15,63 @@ https://www.processon.com/v/68d62f74a225f06bfca6baf9
 official_license: 8000
 trial_license: 8001
 
-license:
+license-function:
   items:
-    - license_id: 8000  # 预装的基础包（正式版）
-      function_id: 1
-    - license_id: 8001  # 预装的基础包（试用版）
-      function_id: 1
-    - license_id: 8010  # 进阶包许可
-      function_id: 2
+    - license-id: 8000  # 预装的基础包（正式版）
+      function-id: 1
+    - license-id: 8001  # 预装的基础包（试用版）
+      function-id: 1
+    - license-id: 8010  # 进阶包许可
+      function-id: 2
   function:
-    - function_id: 1
+    - function-id: 1
       description: 基础包功能
       # 与agent无关的功能，可以在ai-gateway统一校验
-	  common_function:
-	    urls:
-	      - url: /knowledge/*
-		    configuration:
-	  # 与agent相关的功能；ai-gateway拿不到plan请求的动态规划出的agent_id，只能在app那边触发校验
-      agent_function:
-	    - agent_id: xxx
+      common-function:
+        urls:
+          - url: /knowledge/*
+            configuration:
+            meta:
+	  # 与agent相关的功能；ai-gateway拿不到plan请求的动态规划出的agent-id，只能在app那边触发校验
+      agent-function:
+        - agent-id: xxx
   	      urls:
-	        - url: xxx
-	  	      configuration: # 描述同一功能、不同许可下的资源配置。如试用许可的数据分类分级字段总数限量不同
-    - function_id: 2
+            - url: xxx
+      	      configuration: # 描述同一功能、不同许可下的资源配置。如试用许可的数据分类分级字段总数限量不同
+      	      meta:
+    - function-id: 2
       description: 进阶包功能
-  	  common_function:
+      common-function:
   	    urls:
-  		  - url: /knowledge/*
-		    configuration:
-      agent_function:
-	    - agent_id: xxx
-	      urls:
-	        - url: xxx
-		      configuration:
+  	      - url: /knowledge/*
+            configuration:
+            meta:
+      agent-function:
+        - agent-id: xxx
+          urls:
+            - url: xxx
+              configuration:
+              meta:
 
 ============ ai-gateway: 许可的配置存储与更新 ===============
 本地：
-  预置(基础包): 安装平台许可后，hillos-core会激活预装的许可，并推送许可信息给ai-gateway入库。 安装完成后即可访问基础包的功能
+  预置(基础包): 安装平台许可后，hillos-core会激活预装的应用许可，并推送许可信息给ai-gateway入库。 安装完成后即可访问基础包的功能
   非预置(进阶包、旗舰包等): 用户安装进阶包许可后，hillos-core推送许可信息给ai-gateway入库。 安装完成即可访问进阶包的功能
 云端：
   预置(基础包): ai-gateway预装好的许可。 开通租户后即可访问基础包的功能
   非预置(进阶包、旗舰包等): 租户订阅进阶包后，云景推送许可信息给ai-gateway入库。 订阅完成即可访问进阶包的功能
 
 
-# 云端预装的license配置: application-cloud.yml
-app_license:
-  cloud_preload_license:
-    - license_id: 8000
-      description: 正式版
-      type: DATE
-      time: 2100-12-31 （NULL就是永久）
+# 云端预装的license配置: cloud\application.yml
+app-preload-license:
+  - license-id: 8000
+    description: 正式版
+    type: DATE
+    expired-time: 2100-12-31  # 不填表示永不过期
 
 2. ai-gateway启动时加载数据
   - 获取业务锁（gmd提供的分布式锁）
-  - 加载 cloud_preload_license 预装配置，查表 t_app_license_tenant where (租户id=0, license_id=预置license_id)
+  - 加载 app-preload-license 预装配置，查表 t_app_license_tenant where (租户id=0, license_id=预置license_id)
     - 查不到，则入库 t_app_license_tenant VALUES(租户id=0, 预置license_id, expired_time, expired_time_type, order_time)
     - 查的到，只更新字段 expired_time, expired_time_type
   - 查表 t_app_license_tenant，把已安装的license_id存到redis里：  app_license:{租户id}:license_id    值：  {license_id}
@@ -77,7 +80,7 @@ app_license:
 3. app安装场景：
 - manage-center推送appid, metadata
 - 获取业务锁
-- app metadata入库 t_app_license_function VALUES(appid, metadata)
+- app metadata入库 t_app_license_function VALUES(appid, metadata)        (根据appid查，查不到就insert，查得到就更新)
 - 加载许可的功能列表：
   - 查表 t_app_license_tenant 获取 (租户id, license_id, expired_time)
   - 查 metadata 获取 url, agent_id, configuration
@@ -128,8 +131,6 @@ app_license:
 
 7. 租户合并场景：
   - 获取业务锁
-  - 主租户：
-    - 查询副租户剩余时间，把剩余时间累加到主租户上，更新mysql和redis
   - 删除副租户：
     - t_app_license_tenant 根据租户id删除数据
     - redis 删除key: app_license:{租户id}*
