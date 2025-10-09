@@ -27,23 +27,23 @@ license:
     - function_id: 1
       description: 基础包功能
       # 与agent无关的功能，可以在ai-gateway统一校验
-	  common_type:
+	  common_function:
 	    urls:
 	      - url: /knowledge/*
 		    configuration:
 	  # 与agent相关的功能；ai-gateway拿不到plan请求的动态规划出的agent_id，只能在app那边触发校验
-      agent_type:
+      agent_function:
 	    - agent_id: xxx
   	      urls:
 	        - url: xxx
-	  	    configuration: # 描述同一功能、不同许可下的资源配置。如试用许可的数据分类分级字段总数限量不同
+	  	      configuration: # 描述同一功能、不同许可下的资源配置。如试用许可的数据分类分级字段总数限量不同
     - function_id: 2
       description: 进阶包功能
-  	  common_type:
+  	  common_function:
   	    urls:
   		  - url: /knowledge/*
 		    configuration:
-      agent_type:
+      agent_function:
 	    - agent_id: xxx
 	      urls:
 	        - url: xxx
@@ -52,10 +52,10 @@ license:
 ============ ai-gateway: 许可的配置存储与更新 ===============
 本地：
   预置(基础包): 安装平台许可后，hillos-core会激活预装的许可，并推送许可信息给ai-gateway入库。 安装完成后即可访问基础包的功能
-  非预置(进阶包、旗舰包等): 用户安装进阶包许可后，hillos-core推送许可信息给ai-gateway入库。 安装完成即可访问进阶包的功能。
+  非预置(进阶包、旗舰包等): 用户安装进阶包许可后，hillos-core推送许可信息给ai-gateway入库。 安装完成即可访问进阶包的功能
 云端：
   预置(基础包): ai-gateway预装好的许可。 开通租户后即可访问基础包的功能
-  非预置(进阶包、旗舰包等): 租户订阅进阶包后，云景推送许可信息给ai-gateway入库。 订阅完成即可访问进阶包的功能。
+  非预置(进阶包、旗舰包等): 租户订阅进阶包后，云景推送许可信息给ai-gateway入库。 订阅完成即可访问进阶包的功能
 
 
 # 云端预装的license配置: application-cloud.yml
@@ -82,8 +82,8 @@ app_license:
   - 查表 t_app_license_tenant 获取 (租户id, license_id, expired_time)
   - 查 metadata 获取 url, agent_id, configuration
   - 入redis:
-    - app_license:{租户id}:common_type:{license_id}:{appid}:{url}        值：  {expired_time} + {configuration}
-    - app_license:{租户id}:agent_type: {license_id}:{appid}:{agent_id}   值：  {expired_time} + {configuration}
+    - app_license:{租户id}:common_function:{license_id}:{appid}:{url}        值：  {expired_time} + {configuration}
+    - app_license:{租户id}:agent_function: {license_id}:{appid}:{agent_id}   值：  {expired_time} + {configuration}
 
 4. 云端用户购买进阶包场景：
 - 云景推送数据：租户id, license_id, expired_time, expired_time_type, order_time
@@ -91,8 +91,8 @@ app_license:
 - 入库 t_app_license_tenant VALUES(租户id, license_id, expired_time, expired_time_type, order_time)
 - 根据 license_id 查 metadata 获取 appid, url, agent_id, configuration
 - 入redis:
-  - app_license:{租户id}:common_type:{进阶license_id}:{appid}:{url}         值：  {expired_time} + {configuration}
-  - app_license:{租户id}:agent_type: {进阶license_id}:{appid}:{agent_id}    值：  {expired_time} + {configuration}
+  - app_license:{租户id}:common_function:{进阶license_id}:{appid}:{url}         值：  {expired_time} + {configuration}
+  - app_license:{租户id}:agent_function: {进阶license_id}:{appid}:{agent_id}    值：  {expired_time} + {configuration}
   - app_license:{租户id}:license_id    值：  {license_id}
 
 5. 本地用户安装许可场景：
@@ -102,8 +102,8 @@ app_license:
   - 入库 t_app_license_tenant VALUES(租户id=0, license_id, expired_time, expired_time_type, order_time)
   - 根据 license_id 查 metadata 获取 appid, url, agent_id, configuration
   - 入redis
-    - app_license:{租户id=0}:common_type:{进阶license_id}:{appid}:{url}         值：  {expired_time} + {configuration}
-    - app_license:{租户id=0}:agent_type: {进阶license_id}:{appid}:{agent_id}    值：  {expired_time} + {configuration}
+    - app_license:{租户id=0}:common_function:{进阶license_id}:{appid}:{url}         值：  {expired_time} + {configuration}
+    - app_license:{租户id=0}:agent_function: {进阶license_id}:{appid}:{agent_id}    值：  {expired_time} + {configuration}
     - app_license:{租户id=0}:license_id    值：  {license_id}
 
 ============ ai-gateway: 许可的功能控制 ===============
@@ -111,15 +111,15 @@ app_license:
     ai-gateway 做 common_check:
       - 要求请求带上租户id、appid
       - 从redis读取已安装的license_id： app_license:{租户id}:license_id
-      - 先找预置license的redis key    app_license:{租户id=0}:common_type:{预置license_id}:{appid}:{url}
-      - 再找进阶license的redis key    app_license:{租户id}:common_type:{进阶license_id}:{appid}:{url}
+      - 先找预置license的redis key    app_license:{租户id=0}:common_function:{预置license_id}:{appid}:{url}
+      - 再找进阶license的redis key    app_license:{租户id}:common_function:{进阶license_id}:{appid}:{url}
       - 若找到，校验过期时间和configuration
       - 找不到，拒绝请求
     app 触发 agent_check：
       - 要求请求带上租户id、appid、agent_id
       - 从redis读取已安装的license_id： app_license:{租户id}:license_id
-      - 先找预置license的redis key    app_license:{租户id=0}:agent_type: {预置license_id}:{appid}:{agent_id}
-      - 再找进阶license的redis key    app_license:{租户id}:agent_type:{进阶license_id}:{appid}:{agent_id}
+      - 先找预置license的redis key    app_license:{租户id=0}:agent_function: {预置license_id}:{appid}:{agent_id}
+      - 再找进阶license的redis key    app_license:{租户id}:agent_function:{进阶license_id}:{appid}:{agent_id}
       - 若找到，校验过期时间和configuration
       - 找不到，拒绝请求
 
