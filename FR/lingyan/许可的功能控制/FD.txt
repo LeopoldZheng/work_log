@@ -75,12 +75,12 @@ app-preload-license:
     - 查不到，则入库 t_app_license_tenant VALUES(租户id=0, 预置license_id, expired_time, expired_time_type, order_time)
     - 查的到，只更新字段 expired_time, expired_time_type
   - 查表 t_app_license_tenant，把已安装的license_id存到redis里：  app_license:{租户id}:license_id    值：  {license_id}
-  - 重建redis的2类key的数据：把 t_app_license_tenant、t_app_license_function 数据捞到redis里
+  - 重建redis的2类key的数据：把 t_app_license_tenant、t_app_license_metadata 数据捞到redis里
 
 3. app安装场景：
 - manage-center推送appid, metadata
 - 获取业务锁
-- app metadata入库 t_app_license_function VALUES(appid, metadata)        (根据appid查，查不到就insert，查得到就更新)
+- app metadata入库 t_app_license_metadata VALUES(appid, metadata)        (INSERT INTO...ON DUPLICATE KEY UPDATE metadata = VALUES(metadata) )
 - 加载许可的功能列表：
   - 查表 t_app_license_tenant 获取 (租户id, license_id, expired_time)
   - 查 metadata 获取 url, agent_id, configuration
@@ -92,7 +92,7 @@ app-preload-license:
 - 云景推送数据：租户id, license_id, expired_time, expired_time_type, order_time
 - 获取业务锁
 - 入库 t_app_license_tenant VALUES(租户id, license_id, expired_time, expired_time_type, order_time)
-- 根据 license_id 查 metadata 获取 appid, url, agent_id, configuration
+- 查 t_app_license_metadata 获取所有app的{licenseId}下的信息，包括url, agent_id, configuration、expiredTime等
 - 入redis:
   - app_license:{租户id}:common_function:{进阶license_id}:{appid}:{url}         值：  {expired_time} + {configuration}
   - app_license:{租户id}:agent_function: {进阶license_id}:{appid}:{agent_id}    值：  {expired_time} + {configuration}
@@ -103,7 +103,7 @@ app-preload-license:
   - ai-gateway 订阅kafka
   - 获取业务锁
   - 入库 t_app_license_tenant VALUES(租户id=0, license_id, expired_time, expired_time_type, order_time)
-  - 根据 license_id 查 metadata 获取 appid, url, agent_id, configuration
+  - 查 t_app_license_metadata 获取所有app的{licenseId}下的信息，包括url, agent_id, configuration、expiredTime等
   - 入redis
     - app_license:{租户id=0}:common_function:{进阶license_id}:{appid}:{url}         值：  {expired_time} + {configuration}
     - app_license:{租户id=0}:agent_function: {进阶license_id}:{appid}:{agent_id}    值：  {expired_time} + {configuration}
@@ -146,7 +146,6 @@ app-preload-license:
     - 先查安装了哪些license
       根据租户id={0, 租户id参数} 查表 t_app_license_tenant 获取 license_id 和过期时间
     - 根据license查app的metadata
-      根据 license_id 查表 t_app_license_function，获取可用的app及agent
-
+      根据 license_id 查表 t_app_license_metadata，获取可用的app及agent
 
 
