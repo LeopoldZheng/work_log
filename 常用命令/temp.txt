@@ -1,0 +1,26 @@
+
+表 knowledge_base_enterprise 插入知识库数据
+llm_chatbot/knowledge/base.py     :148行    改 hillstone_elasticsearch_db
+.env    87行    改文档上传的知识库id：kb_id 为 21 （防火墙）
+
+
+
+
+一体机用gpu的baseimage，vm用cpu的
+llm-models改values-prod.yaml和.env
+resource.yaml:
+  extra_configurations: -- image: docker.hillstonenet.com.cn/hillos/base-image-py:3.11-slim-v1
+跑性能：
+  15分钟 27MB的文本向量化
+
+vllm的gpu利用率改成0.85
+
+
+
+智谱：embedding-3、1024维度
+
+
+
+===================================================================
+
+ps  -o %mem,rss,vsz,comm -p 238042

@@ -1,0 +1,76 @@
+lpi4la0aQlvmABiD+CDKkofrqOgBR4OUh5LylfajYotb5OtV68bToPnOYWolj0Aypc5RJWZvi6vEDUvwQMKho21asdZ2uk83bdaV0q6JS3i+p4RGoa2eiZTfQWyH7WCBKLch+QJOLU3+yUWToY26CwQXGt3uw3on8ffpRcndGD6TwfFD4NNz3JcHr+fH+dKSkSpgGR8ir20strrmwc7ou0Ql9fn8VWZ8DJDtMebrNhkeoJ+yjumcHxVsHEuc39x0zSnItk3tmJ/w75IfA9aTzHZY1WwozT7pfji6RhKb4UOwCMpmZWZTbMAqpJxxXqN5J8zSFLQSegfKvbXKr18vJA==
+
+ip6tables -t filter -nL MOUNT --line-numbers
+ip6tables -t filter -D MOUNT 2
+iptables -I INPUT -p tcp --dport 9093 -j ACCEPT
+
+sh /usr/local/hillstone/kafka/bin/kafka-topics.sh --bootstrap-server 10.182.27.52:9062 --list
+
+sh kafka-topics.sh --bootstrap-server 10.182.27.52:9062 --create --topic test1
+
+sh /usr/local/hillstone/kafka/bin/kafka-consumer-groups.sh --bootstrap-server 127.0.0.1:9062 --describe --all-groups
+
+
+远程执行命令：
+sshpass -p 'hillstone' ssh  -o StrictHostKeyChecking=no root@node2.hillstone.local 'hostnamectl'
+
+iptables -t mangle -I PREROUTING -p tcp --dport 8300 -j ACCEPT
+
+ambari 8080端口     admin HillStone
+
+
+查看内存分配：
+ps  -o %mem,rss,vsz,comm -p 47059 (KB)
+ps -eo pid,ppid,cmd,%mem,rss,vsz,%cpu --sort=-%mem | head -n 11
+
+upgrade offline --url ftp://10.200.6.10/qa/DSGP_DAILYBUILD/2.2.0/intg-2.2.0/DSGPV2.0R2-intg-2.2.0-0419-D48.bin
+upgrade offline --url ftp://10.200.6.10/qa/HillstoneCortex_DAILYBUILD/2.2.1/intg-2.2.1/SG-6000-HillstoneCortex-V2.0R2P1-intg-2.2.1-0819-D507.bin
+10.182.193.99
+cd /nfs-share/nfs-2/jzzheng && wget ftp://10.200.6.10/qa/I-SOURCE_DAILYBUILD/2.13.0/ISOP_MAIN_2.13_DEV/V2.0R13-ISOP_MAIN_2.13_DEV-1128-D852.iso
+cd /nfs-share/nfs-2/jzzheng && wget ftp://10.200.6.10/dev/DSGP_DAILYBUILD/2.2.1/46252/V2.0R2P1-46252-1123-D2073.iso
+cd /nfs-share/nfs-2/jzzheng && wget ftp://10.200.6.10/qa/DSGP_DAILYBUILD/2.3.0/intg-2.3.1/xxx.iso
+wget ftp://10.200.6.10/qa/HillstoneCortex_DAILYBUILD/2.2.0/2.2.x/xxx.iso
+
+kubectl edit configmap coredns -n kube-system
+
+kubectl get configmap coredns -n kube-system -o yaml > /tmp/configmap.yml
+kubectl apply -f /tmp/configmap.yml -n kube-system
+kubectl rollout restart deployment coredns -n kube-system
+
+
+systemctl stop gmd && curl -k -uuserout:hillstone sftp://10.182.142.81/jzzheng/gmd.jar -o /usr/local/hillstone/gmd/lib/gmd.jar && systemctl start gmd
+curl -k -uuserout:hillstone sftp://10.182.142.81/jzzheng/shell.jar -o /home/hillstone/shell/lib/shell.jar
+curl -k -uuserout:hillstone sftp://10.182.142.81/jzzheng/hillos-core-system-2.2.0-SNAPSHOT.jar -o /usr/local/hillstone/hillos-core/lib/hillos-core-system-2.2.0-RC-SNAPSHOT.jar
+curl -k -uuserout:hillstone sftp://10.182.142.81/jzzheng/hillos-core-interface-2.2.0-SNAPSHOT.jar -o /usr/local/hillstone/hillos-core/lib/hillos-core-interface-2.2.0-RC-SNAPSHOT.jar
+
+curl -k -uuserout:hillstone sftp://10.182.142.81/jzzheng/hillos-core-server.jar -o /usr/local/hillstone/hillos-core/hillos-core-server.jar
+
+
+curl -k -uuserout:hillstone sftp://10.182.142.81/jzzheng/hillos-gmd-interface-2.4.0-SNAPSHOT.jar -o /home/hillstone/shell/lib/hillos-gmd-interface-2.4.0-RC-SNAPSHOT.jar
+curl -k -uuserout:hillstone sftp://10.182.142.81/jzzheng/hillos-gmd-interface-2.4.0-SNAPSHOT.jar -o /usr/local/hillstone/hillos-core/lib/hillos-gmd-interface-2.4.0-RC-SNAPSHOT.jar
+
+curl -k -uuserout:hillstone sftp://10.182.142.81/jzzheng/hillos-core-framework-2.1.0-SNAPSHOT.jar -o /usr/local/hillstone/hillos-core/lib/hillos-core-framework-2.1.0-RC-SNAPSHOT.jar
+
+
+
+
+bin/kafka-producer-perf-test.sh --topic perf-test --num-records 1000 --record-size 1024 --throughput -1 --producer-props bootstrap.servers=127.0.0.1:9092 compression.type=lz4
+
+sh /usr/local/hillstone/kafka/bin/kafka-producer-perf-test.sh --num-records 50156400700 --payload-file /data/hhlog/perflog.json --throughput -1 --producer-props bootstrap.servers=10.182.28.11:9062,10.182.28.12:9062,10.182.28.13:9062 --topic topic2
+
+sh /usr/local/hillstone/kafka/bin/kafka-producer-perf-test.sh --num-records 50156400700 --record-size 1048576  --throughput -1 --producer-props bootstrap.servers=10.182.28.11:9062,10.182.28.12:9062,10.182.28.13:9062 --topic topic2
+sh /usr/local/hillstone/kafka/bin/kafka-consumer-groups.sh --bootstrap-server 127.0.0.1:9062 --describe --all-groups
+
+
+服务启动
+The following 2 profiles are active: "default", "prod"
+
+
+VM激活：
+http://10.88.17.59/ ：选产品型号、天数、类型、下载sn
+web页面通过sn获取请求码
+https://devactive.hillstonenet.com/hc_activesn_offline.html  ：通过请求码获取激活码
+
+
+通过manage-center删除app：
+kubectl exec -it $(kubectl get pod | awk '/^lingyan-manage-center/{print $1}') -- curl -XDELETE "http://localhost:8080/manage-center/application/app/01010001000500000000000638352158"

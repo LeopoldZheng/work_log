@@ -1,0 +1,6 @@
+环境ip：管理ip
+10.182.26.14  - 10.182.26.114      administrator advantech
+10.182.223.151  - 10.182.223.150   admin admin
+10.182.62.63    - 10.182.62.62     admin admin   Hillstone@1  ???
+10.193.3.201    - 10.193.3.221     USERID Hillstone@2   新机房
+10.193.3.203    - 10.193.3.223     USERID Hillstone@2   新机房
