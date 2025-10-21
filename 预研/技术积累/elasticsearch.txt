@@ -1,0 +1,84 @@
+
+创建快照仓库
+curl -X PUT "http://localhost:9200/_snapshot/llm_chatbot_repo" -H "Content-Type: application/json" -d '{
+  "type": "fs",
+  "settings": {
+    "location": "/data/elasticsearch/repository/llm_chatbot_repo"
+  }
+}'
+
+将快照拷贝并解压缩内容到目录下：/data/elasticsearch/repository/llm_chatbot_repo
+tar -zxvf myfile.tar.gz -C /data/elasticsearch/repository/llm_chatbot_repo
+
+
+恢复某个仓库下的快照：
+curl -X POST "http://localhost:9200/_snapshot/llm_chatbot_repo/llm_chatbot_snapshot/_restore" -H "Content-Type: application/json" -d '{
+  "indices": "_all",
+  "ignore_unavailable": true,
+  "include_global_state": false
+}'
+
+查看所有索引、删除某个索引：
+curl -X GET "http://localhost:9200/_cat/indices?v"
+curl -X DELETE "http://localhost:9200/llm_chatbot_hillstone"
+
+查询所有数据、查询某索引的数据：
+curl -X GET "http://localhost:9200/_search?pretty&size=1"
+curl -X GET "http://localhost:9200/llm_chatbot_hillstone/_search?pretty&size=1"
+
+
+获取所有仓库、删除某仓库：
+curl -X GET "http://localhost:9200/_snapshot?pretty"
+curl -X DELETE "http://localhost:9200/_snapshot/llm_chatbot_repo"
+
+获取某仓库所有快照、删除某仓库某快照：
+curl -X GET "http://localhost:9200/_snapshot/llm_chatbot_repo/_all?pretty"
+curl -X DELETE "http://localhost:9200/_snapshot/llm_chatbot_repo/llm_chatbot_snapshot"
+
+
+
+==============================================================
+
+curl -X DELETE "http://localhost:9200/_snapshot/llm_chatbot_repo/llm_chatbot_snapshot" && \
+curl -X DELETE "http://localhost:9200/_snapshot/llm_chatbot_repo" && \
+curl -X DELETE "http://localhost:9200/llm_chatbot_hillstone" && \
+curl -X GET "http://localhost:9200/_search?pretty&size=1" && \
+rm -rf llm_chatbot_repo/* && tar -zxf es_llm_chatbot_snapshot.tar -C llm_chatbot_repo/ && \
+
+/usr/bin/ansible-playbook /etc/ansible/playbooks/wrapper.yml -t data-restore -e gmd_ansible_roles=systemd/elasticsearch \
+  -e check_index=llm_chatbot_hillstone \
+  -e repo_name=llm_chatbot_repo \
+  -e elasticsearch_port=9200 \
+  -e elasticsearch_repository_path=/data/elasticsearch/repository
+  
+  
+检索某个文本：
+curl -X POST "http://localhost:9200/llm_chatbot_hillstone/_search" -H 'Content-Type: application/json' -d '
+{
+  "query": {
+    "match": {
+      "content": "HSM功能列表及规格限制"
+    }
+  }
+}'
+
+curl -X POST "http://localhost:9200/llm_chatbot_hillstone/_search" -H 'Content-Type: application/json' -d '
+{
+  "query": {
+    "wildcard": {
+      "content.keyword": {
+        "value": "*虚拟路由器*"
+      }
+    }
+  }
+}'
+
+
+======================================
+创建快照
+curl -X PUT "http://localhost:9200/_snapshot/llm_chatbot_repo/llm_chatbot_snapshot" -H "Content-Type: application/json" -d '{
+  "indices": "llm_chatbot_hillstone",
+  "ignore_unavailable": true,
+  "include_global_state": false
+}'
+打包仓库路径：tar -cvf llm_chatbot_repo.tar llm_chatbot_repo

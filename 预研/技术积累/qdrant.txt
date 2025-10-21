@@ -1,0 +1,37 @@
+导入sql脚本
+修改生成向量的py脚本
+修改service.yaml
+执行生成向量的py脚本
+生成qdrant快照
+  curl -X POST http://localhost:6333/collections/new_llm_chatbot_hillstone/snapshots
+  放在/data/snapshot/qdrant/
+
+
+qdrant:
+删除collection：
+  curl -X DELETE http://localhost:6333/collections/llm_chatbot_hillstone
+查看collection：
+  curl http://localhost:6333/collections
+  curl -X GET "http://localhost:6333/collections/llm_chatbot_hillstone"
+恢复：
+curl -X PUT http://localhost:6333/collections/llm_chatbot_hillstone/snapshots/recover -H 'Content-Type: application/json' \
+  -d '{
+    "location": "file:///qdrant/snapshots/new_llm_chatbot_hillstone/new_llm_chatbot_hillstone.snapshot"
+}'
+
+查看某个collection的数据：
+curl -X POST http://localhost:6333/collections/llm_chatbot_enterprisev2/points/scroll -H "Content-Type: application/json" \
+  -d '{
+	"limit": 1, "with_vector": true
+}'
+
+
+
+
+
+curl -X POST http://localhost:6333/collections/high_quality/points/scroll -H "Content-Type: application/json" \
+  -d '{
+	"limit": 1,
+    "with_vector": true,
+    "with_payload": true
+}'
