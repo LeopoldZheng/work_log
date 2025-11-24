@@ -135,11 +135,7 @@ app-preload-license:
     - t_app_license_tenant 根据租户id删除数据
     - redis 删除key: app_license:{租户id}*
 
-8. 每日定时任务：删除过期数据：
-  - 获取业务锁
-  - 查询 t_app_license_tenant 的过期时间和下单时间，删除mysql和redis的过期数据
-
-9. 查询有功能权限的应用和智能体（许可展示、plan图获取可用的agent列表）
+8. 查询有功能权限的应用和智能体（许可展示、plan图获取可用的agent列表）
   - 请求带上{租户id}（为0则表示本地灵岩用户）
   - 调用ai-gateway接口getAvaliableAppAgent
     ai-gateway提供一个查询可用app及agent的接口getAvaliableAppAgent，参数是租户id
@@ -148,4 +144,9 @@ app-preload-license:
     - 根据license查app的metadata
       根据 license_id 查表 t_app_license_metadata，获取可用的app及agent
 
+9. 定时任务：删除过期数据：
+  - 计时， 每个租户买的每个license都计时
+  - 获取业务锁
+  - 查询 t_app_license_tenant 的过期时间和下单时间，删除mysql和redis的过期数据
 
+10. 本地用户修改系统时间，或启用NTP
