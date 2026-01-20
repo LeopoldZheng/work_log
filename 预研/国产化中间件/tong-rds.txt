@@ -1,0 +1,145 @@
+
+6300：中心节点端口
+6200：服务节点端口
+26379：哨兵监听端口
+
+
+哨兵节点
+sentinel.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<Server>
+    <Common>
+        <JmxUrl>localhost:29074</JmxUrl>
+        <MasterPolicy>node</MasterPolicy>
+        <Group>group1</Group>
+    </Common>
+    <Log>
+        <!-- nothing, error, warn, info, debug, dump. >
+        <    error is the default                      -->
+        <Level>info</Level>
+        <BackDates>30</BackDates>
+    </Log>
+    <Listen>
+        <Port>26379</Port>
+        <Threads>4</Threads>
+
+        <!-- 0: telnet; 1: SSL; 2: password; 3: SSL + password. -->
+        <Secure>0</Secure>
+        <IsPlainPassword>true</IsPlainPassword>
+        <!--        <Password>454d?51192b1704c60e19734ce6b38203</Password>-->
+    </Listen>
+    <Services>
+        <WebSession>
+            <!-- 0: telnet; 1: SSL; 2: password; 3: SSL + password. -->
+            <Secure>2</Secure>
+            <IsPlainPassword>true</IsPlainPassword>
+            <Password>hillstone4Ever</Password>
+            <EndPoints>10.182.193.43:6379, 10.185.233.44:6379, 10.185.233.45:6379</EndPoints>
+        </WebSession>
+    </Services>
+    <Center>
+        <Password>454d51192b1704c60e19734ce6b38203</Password>
+        <EndPoint>
+            <Host>10.182.193.43</Host>
+            <Port>6300</Port>
+        </EndPoint>
+        <EndPoint>
+            <Host>10.185.233.44</Host>
+            <Port>6300</Port>
+        </EndPoint>
+        <EndPoint>
+            <Host>10.185.233.45</Host>
+            <Port>6300</Port>
+        </EndPoint>
+    </Center>
+    <Sentinels>
+        <Sentinel>
+            <Host>10.182.193.43</Host>
+            <Port>26379</Port>
+        </Sentinel>
+        <Sentinel>
+            <Host>10.185.233.44</Host>
+            <Port>26379</Port>
+        </Sentinel>
+        <Sentinel>
+            <Host>10.185.233.45</Host>
+            <Port>26379</Port>
+        </Sentinel>
+    </Sentinels>
+</Server>
+
+
+
+服务节点
+cfg.xml 与单机一样
+=================================
+dynamic.xml：（单机todo）
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Server>
+  <Center>
+    <Password>454d51192b1704c60e19734ce6b38203</Password>
+    <EndPoint>
+      <Host>localhost</Host>
+      <Port>6300</Port>
+    </EndPoint>
+  </Center>
+</Server>
+
+dynamic.xml：（集群）
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Server>
+  <Center>
+    <Password>454d51192b1704c60e19734ce6b38203</Password>
+    <EndPoint>
+        <Host>10.182.193.43</Host>
+        <Port>6300</Port>
+    </EndPoint>
+    <EndPoint>
+        <Host>10.185.233.44</Host>
+        <Port>6300</Port>
+    </EndPoint>
+    <EndPoint>
+        <Host>10.185.233.45</Host>
+        <Port>6300</Port>
+    </EndPoint>
+  </Center>
+</Server>
+
+
+中心节点
+放证书
+config.properties  跟单机一样
+========================================
+cluster.properties：（单机todo）
+WebSession.type=register
+
+cluster.properties：（集群）
+WebSession.type=sentinel
+WebSession.nodes=3
+WebSession.node0=10.182.193.43:6200
+WebSession.node1=10.185.233.44:6200
+WebSession.node2=10.185.233.45:6200
+============================================
+sync.properties：(单机todo)
+sync.servers=1
+sync.server0.host=localhost
+sync.server0.port=6300
+
+sync.properties：(集群)
+sync.servers=3
+sync.server0.host=10.182.193.43
+sync.server0.port=6300
+sync.server1.host=10.185.233.44
+sync.server1.port=6300
+sync.server2.host=10.185.233.45
+sync.server2.port=6300
+
+
+启动中心、服务、哨兵
+
+
+
+测试：
+客户端是否感知到 tongrds和redis的差异
+集群部署、单机变集群、扩容、替换、reset
+

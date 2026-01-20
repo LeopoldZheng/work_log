@@ -3,6 +3,7 @@ import json
 import os
 import re
 import sys
+import time
 import uuid
 from abc import abstractmethod
 from typing import Optional, Self, List
@@ -42,6 +43,19 @@ async def main():
     print(result)
     print(len(result))
 
+class Step(TypedDict, total=False):
+    agent_name: str
+    step: str
+
+class Plan(BaseModel):
+    steps: List[Step]
+    is_single_step: bool = False
+
 if __name__ == '__main__':
-    os.environ.setdefault("OPENAI_API_KEY", '')
-    asyncio.run(main())
+    list = [1, 2, 3]
+    print(list[:-1])
+    # for info in loads:
+    #     print(info['k1'])
+
+    # os.environ.setdefault("OPENAI_API_KEY", '')
+    # asyncio.run(main())
